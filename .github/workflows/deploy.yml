@@ -1,0 +1,33 @@
+name: Deploy ke AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install -r app/requirements.txt
+
+    - name: Login to Amazon ECR
+      run: |
+        aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin <your-aws-account-id>.dkr.ecr.ap-southeast-1.amazonaws.com
+
+    - name: Build and Push Docker image
+      run: |
+        docker build -t prediksi-cuaca .
+        docker tag prediksi-cuaca:latest <your-ecr-repo-url>:latest
+        docker push <your-ecr-repo-url>:latest
